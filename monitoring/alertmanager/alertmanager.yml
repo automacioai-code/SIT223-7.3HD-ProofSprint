@@ -1,0 +1,23 @@
+# Alertmanager routing for ProofSprint: every alert goes to the team notifier (webhook), which
+# pushes to the team's phones via ntfy.sh. Resolved notifications are sent too.
+global:
+  resolve_timeout: 1m
+
+route:
+  receiver: team-notifier
+  group_by: ['alertname', 'env']
+  group_wait: 5s
+  group_interval: 10s
+  repeat_interval: 1h
+
+receivers:
+  - name: team-notifier
+    webhook_configs:
+      - url: 'http://127.0.0.1:9095/webhook'
+        send_resolved: true
+
+inhibit_rules:
+  # When an environment is completely down, suppress the noisier symptom alerts for it.
+  - source_matchers: ['alertname="ProofSprintDown"']
+    target_matchers: ['alertname=~"ProofSprintHigh.*"']
+    equal: ['env']

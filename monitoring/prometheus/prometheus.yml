@@ -1,0 +1,39 @@
+# Prometheus configuration for ProofSprint (provisioned by the Jenkins Monitoring stage).
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+  external_labels:
+    project: proofsprint
+
+rule_files:
+  - alerts.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['127.0.0.1:9093']
+
+scrape_configs:
+  - job_name: proofsprint-production
+    static_configs:
+      - targets: ['127.0.0.1:3000']
+        labels:
+          env: production
+
+  - job_name: proofsprint-staging
+    static_configs:
+      - targets: ['127.0.0.1:3001']
+        labels:
+          env: staging
+
+  - job_name: alert-notifier
+    static_configs:
+      - targets: ['127.0.0.1:9095']
+
+  - job_name: alertmanager
+    static_configs:
+      - targets: ['127.0.0.1:9093']
+
+  - job_name: prometheus
+    static_configs:
+      - targets: ['127.0.0.1:9090']

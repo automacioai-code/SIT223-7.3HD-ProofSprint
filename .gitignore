@@ -1,0 +1,10 @@
+node_modules/
+coverage/
+reports/
+dist/
+data/
+.ops/
+.scannerwork/
+.sonar-scanner/
+*.log
+.env

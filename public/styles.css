@@ -1,0 +1,35 @@
+:root { --ink: #16181d; --muted: #6b7280; --line: #e5e7eb; --accent: #0f766e; --warn: #b45309; --bg: #f7f7f5; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink); background: var(--bg); }
+.top { display: flex; align-items: center; gap: 12px; padding: 10px 20px; background: #fff; border-bottom: 1px solid var(--line); }
+.brand { font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.mark { background: var(--ink); color: #fff; border-radius: 6px; padding: 2px 6px; font-size: 12px; }
+.meta, .who { font-size: 12px; color: var(--muted); }
+.who { margin-left: auto; }
+main { max-width: 760px; margin: 16px auto; padding: 0 16px; display: grid; gap: 12px; }
+.card { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
+h1 { font-size: 20px; margin: 0 0 6px; }
+h2 { font-size: 16px; margin: 0 0 8px; }
+h3 { font-size: 14px; margin: 12px 0 4px; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+input, textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; font: inherit; }
+button { background: var(--accent); color: #fff; border: 0; border-radius: 6px; padding: 8px 14px; font: inherit; cursor: pointer; white-space: nowrap; }
+button.secondary { background: #fff; color: var(--accent); border: 1px solid var(--accent); }
+button.link { background: none; color: var(--accent); padding: 0 4px; }
+.row { display: flex; gap: 8px; align-items: center; }
+.stack { display: grid; gap: 8px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.list { padding-left: 18px; }
+.pill { font-size: 11px; background: #eef2f1; color: var(--accent); padding: 1px 6px; border-radius: 99px; }
+.ok { color: var(--accent); font-size: 12px; }
+.warn { color: var(--warn); font-size: 12px; }
+.msg { color: var(--warn); min-height: 1em; }
+.hidden { display: none !important; }
+q { display: block; color: var(--muted); font-style: italic; margin: 2px 0 2px 10px; }
+.log { display: grid; gap: 8px; max-height: 60vh; overflow-y: auto; margin-bottom: 10px; }
+.bubble { padding: 8px 12px; border-radius: 12px; max-width: 80%; }
+.bubble.bot { background: #eef2f1; }
+.bubble.me { background: var(--accent); color: #fff; justify-self: end; }
+.foot { text-align: center; font-size: 12px; color: var(--muted); padding: 12px; }
+@media (max-width: 600px) { .grid2 { grid-template-columns: 1fr; } }

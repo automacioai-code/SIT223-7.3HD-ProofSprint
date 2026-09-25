@@ -1,0 +1,12 @@
+{
+  "policy": "Build fails on any untriaged HIGH/CRITICAL vulnerability in shipped code or any secret. Each decision below records why a finding is accepted, with an expiry date for re-review.",
+  "decisions": [
+    {
+      "id": "security/detect-non-literal-fs-filename",
+      "decision": "false-positive",
+      "reason": "File paths come only from the DATA_DIR setting chosen by the deployment (deploy/*.env), never from HTTP input; file names are constants (proofsprint.json, .jwt-secret).",
+      "owner": "Aaryan Dandona",
+      "expires": "2027-03-31"
+    }
+  ]
+}
