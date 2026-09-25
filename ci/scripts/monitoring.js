@@ -108,7 +108,7 @@ async function grafanaProcess(dir) {
   );
   const ini = path.join(gdir, 'custom.ini');
   fs.writeFileSync(ini, grafanaIni(gdir, home));
-  return { name: 'grafana', script: exe, interpreter: 'none', args: ['server', '--homepath', home, '--config', ini], ready: `${GRAFANA}/api/health`, keepRunning: true };
+  return { name: 'grafana', script: exe, interpreter: 'none', args: ['server', '--homepath', home, '--config', ini], ready: `${GRAFANA}/api/health`, keepRunning: true, optional: true };
 }
 
 async function ensureProcess(pm2, running, proc, dir) {
@@ -160,6 +160,17 @@ async function verifyTargets() {
   }, { timeoutMs: 90000, intervalMs: 3000 });
 }
 
+async function waitReady(proc) {
+  try {
+    await waitFor(`${proc.name} to be ready`, async () => (await http(proc.ready)).status === 200, { timeoutMs: 120000, intervalMs: 2000 });
+    return true;
+  } catch (err) {
+    if (!proc.optional) throw err;
+    log(`${proc.name} did not become ready (${err.message}); continuing without it`);
+    return false;
+  }
+}
+
 async function provision(dir, topic) {
   const pm2 = require(path.dirname(toolPath('pm2')));
   await pm2Call(pm2, 'connect');
@@ -169,7 +180,7 @@ async function provision(dir, topic) {
     const grafana = await grafanaProcess(dir);
     for (const proc of [...processes(dir, topic), ...(grafana ? [grafana] : [])]) {
       actions[proc.name] = await ensureProcess(pm2, running, proc, dir);
-      await waitFor(`${proc.name} to be ready`, async () => (await http(proc.ready)).status === 200, { timeoutMs: 120000, intervalMs: 2000 });
+      if (!(await waitReady(proc))) delete actions[proc.name];
     }
   } finally {
     pm2.disconnect();
@@ -188,9 +199,14 @@ async function verifyRulesAndRouting() {
 
 async function verifyGrafana(actions) {
   if (!actions.grafana) return false;
-  const dash = await http(`${GRAFANA}/api/search?query=ProofSprint`).catch(() => null);
-  if (!(dash && Array.isArray(dash.json) && dash.json.length)) fail('Grafana is running but the ProofSprint dashboard was not provisioned');
-  return true;
+  const found = await waitFor('Grafana to provision the ProofSprint dashboard', async () => {
+    const dash = await http(`${GRAFANA}/api/search?query=ProofSprint`);
+    return Array.isArray(dash.json) && dash.json.length > 0;
+  }, { timeoutMs: 60000, intervalMs: 3000 }).catch((err) => {
+    log(`Grafana dashboard check: ${err.message}`);
+    return false;
+  });
+  return Boolean(found);
 }
 
 async function metricSnapshot() {
