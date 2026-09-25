@@ -9,7 +9,7 @@ const security = require('eslint-plugin-security');
  * complexity and size limits keep functions small and maintainable.
  */
 module.exports = [
-  { ignores: ['node_modules/**', 'coverage/**', 'reports/**', 'monitoring/grafana/**'] },
+  { ignores: ['node_modules/**', 'coverage/**', 'reports/**', 'dist/**', '.scannerwork/**', '.sonar-scanner/**'] },
   js.configs.recommended,
   security.configs.recommended,
   {
