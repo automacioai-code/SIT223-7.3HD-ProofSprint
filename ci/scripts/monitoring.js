@@ -97,7 +97,7 @@ async function grafanaProcess(dir) {
   }
   const home = path.dirname(path.dirname(exe));
   const gdir = path.join(dir, 'grafana');
-  for (const sub of ['provisioning/datasources', 'provisioning/dashboards', 'provisioning/plugins', 'provisioning/alerting', 'dashboards', 'logs']) {
+  for (const sub of ['provisioning/datasources', 'provisioning/dashboards', 'provisioning/plugins', 'provisioning/alerting', 'dashboards', 'data', 'plugins', 'logs']) {
     fs.mkdirSync(path.join(gdir, sub), { recursive: true });
   }
   fs.copyFileSync(path.join(REPO_ROOT, 'monitoring', 'grafana', 'datasource.yml'), path.join(gdir, 'provisioning', 'datasources', 'prometheus.yml'));
