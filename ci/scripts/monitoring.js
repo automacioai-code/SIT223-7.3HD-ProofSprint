@@ -199,7 +199,7 @@ async function metricSnapshot() {
     'Production up (1 = up)': await query(`up{${prod}}`),
     'Staging up (1 = up)': await query('up{job="proofsprint-staging"}'),
     'Production request rate (req/s, 1m)': await query(`sum(rate(http_requests_total{${prod}}[1m]))`),
-    'Production 5xx error ratio (1m)': await query(`sum(rate(http_requests_total{${prod},status=~"5.."}[1m])) / sum(rate(http_requests_total{${prod}}[1m]))`),
+    'Production 5xx error ratio (1m)': await query(`(sum(rate(http_requests_total{${prod},status=~"5.."}[1m])) or vector(0)) / sum(rate(http_requests_total{${prod}}[1m]))`),
     'Production p95 latency (s, 1m)': await query(`histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{${prod}}[1m])))`),
     'Production memory (MB)': await query(`process_resident_memory_bytes{${prod}} / 1024 / 1024`),
     'Production CPU (cores, 1m)': await query(`rate(process_cpu_seconds_total{${prod}}[1m])`),

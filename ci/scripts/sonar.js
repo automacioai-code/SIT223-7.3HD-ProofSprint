@@ -27,12 +27,19 @@ const THRESHOLDS = [
 
 const auth = () => ({ Authorization: `Basic ${Buffer.from(`${process.env.SONAR_TOKEN || ''}:`).toString('base64')}` });
 
+/** CI-based analysis (this pipeline) cannot run while SonarCloud's automatic analysis is on. */
+async function disableAutomaticAnalysis() {
+  const res = await http(`${HOST}/api/autoscan/activation`, { method: 'POST', headers: auth(), form: { enable: 'false', projectKey: KEY }, timeoutMs: 20000 });
+  log(res.ok ? 'SonarCloud automatic analysis is off: this pipeline is the analysis method' : `Could not switch off automatic analysis (${res.status}): ${res.text.slice(0, 160)}`);
+}
+
 async function ensureProject() {
   if (!process.env.SONAR_TOKEN) fail('SONAR_TOKEN is not set (add the SONAR_TOKEN secret-text credential in Jenkins)');
   const found = await http(`${HOST}/api/projects/search?organization=${ORG}&projects=${encodeURIComponent(KEY)}`, { headers: auth(), timeoutMs: 20000 });
   if (found.status !== 200) fail(`SonarCloud project lookup failed (${found.status}): ${found.text.slice(0, 200)}`);
   if (found.json.components.some((c) => c.key === KEY)) {
     log(`SonarCloud project ${KEY} exists`);
+    await disableAutomaticAnalysis();
     return;
   }
   const created = await http(`${HOST}/api/projects/create`, {
@@ -43,6 +50,7 @@ async function ensureProject() {
   });
   if (created.status !== 200) fail(`Could not create SonarCloud project (${created.status}): ${created.text.slice(0, 200)}`);
   log(`Created SonarCloud project ${KEY} in organization ${ORG}`);
+  await disableAutomaticAnalysis();
 }
 
 function evaluate(measures) {
