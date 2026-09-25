@@ -28,7 +28,8 @@ async function push(event) {
         Priority: firing && event.severity === 'critical' ? '5' : '3',
         Tags: firing ? 'rotating_light' : 'white_check_mark',
       },
-      body: `${event.summary}\n${event.description}`,
+      // Resolved notifications repeat the last firing annotation, so send a plain recovery message instead.
+      body: firing ? `${event.summary}\n${event.description}` : `${event.summary}: back to normal.`,
     });
     stats[res.ok ? 'pushed' : 'pushFailed'] += 1;
   } catch {
