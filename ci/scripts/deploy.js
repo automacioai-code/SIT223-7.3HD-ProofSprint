@@ -64,6 +64,7 @@ function installRelease(envDir, version) {
 function chaosKey(envDir, enabled) {
   if (!enabled) return '';
   const file = path.join(envDir, 'chaos.key');
+  fs.mkdirSync(envDir, { recursive: true });
   if (!fs.existsSync(file)) fs.writeFileSync(file, crypto.randomBytes(24).toString('hex'));
   return fs.readFileSync(file, 'utf8').trim();
 }
