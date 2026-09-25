@@ -6,6 +6,7 @@
  *   node ci/scripts/smoke.js --url http://127.0.0.1:3001 --version 1.0.12 --env staging
  */
 
+const crypto = require('crypto');
 const { arg, http, log, writeJson, reportsDir, table } = require('./lib');
 const path = require('path');
 
@@ -32,7 +33,7 @@ function buildSteps(base, expectedVersion, ctx) {
       check(r.status === 200 && r.json.ok === false, `status ${r.status}`);
     }],
     ['Founder can register', async () => {
-      const r = await http(`${base}/api/auth/register`, { method: 'POST', body: { email: `smoke+${Date.now()}@proofsprint.test`, password: 'smoke-test-password', name: 'Smoke Test' } });
+      const r = await http(`${base}/api/auth/register`, { method: 'POST', body: { email: `smoke-${crypto.randomUUID()}@proofsprint.test`, password: crypto.randomBytes(12).toString('hex'), name: 'Smoke Test' } });
       check(r.status === 201 && r.json.token, `status ${r.status}`);
       ctx.token = r.json.token;
     }],

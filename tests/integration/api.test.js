@@ -1,7 +1,7 @@
 'use strict';
 
 const request = require('supertest');
-const { buildApp, registerUser, createSprint } = require('./helpers');
+const { buildApp, registerUser, createSprint, TEST_PASSWORD } = require('./helpers');
 
 describe('platform endpoints', () => {
   const { app } = buildApp();
@@ -50,7 +50,7 @@ describe('authentication', () => {
   test('register, login and fetch the current user', async () => {
     const { token, email } = await registerUser(app, 'mia@deakin.edu.au');
     expect(token).toEqual(expect.any(String));
-    const login = await request(app).post('/api/auth/login').send({ email, password: 'correct-horse-1' }).expect(200);
+    const login = await request(app).post('/api/auth/login').send({ email, password: TEST_PASSWORD }).expect(200);
     const me = await request(app).get('/api/auth/me').set('Authorization', `Bearer ${login.body.token}`).expect(200);
     expect(me.body.user).toMatchObject({ email: 'mia@deakin.edu.au', name: 'Founder' });
     expect(me.body.user.passwordHash).toBeUndefined();
@@ -58,9 +58,9 @@ describe('authentication', () => {
 
   test('rejects duplicates, weak passwords, bad credentials and bad tokens', async () => {
     await registerUser(app, 'dup@deakin.edu.au');
-    await request(app).post('/api/auth/register').send({ email: 'dup@deakin.edu.au', password: 'correct-horse-1' }).expect(409);
+    await request(app).post('/api/auth/register').send({ email: 'dup@deakin.edu.au', password: TEST_PASSWORD }).expect(409);
     await request(app).post('/api/auth/register').send({ email: 'x@deakin.edu.au', password: 'short' }).expect(400);
-    await request(app).post('/api/auth/register').send({ email: 'not-an-email', password: 'correct-horse-1' }).expect(400);
+    await request(app).post('/api/auth/register').send({ email: 'not-an-email', password: TEST_PASSWORD }).expect(400);
     await request(app).post('/api/auth/login').send({ email: 'dup@deakin.edu.au', password: 'wrong-password' }).expect(401);
     await request(app).get('/api/auth/me').expect(401);
     await request(app).get('/api/auth/me').set('Authorization', 'Bearer not-a-token').expect(401);

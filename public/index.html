@@ -18,9 +18,12 @@
       <h1>From idea to real customer evidence in 7 days</h1>
       <p class="muted">AI co-pilot for student founders: map your riskiest assumptions, get a bias-checked interview script, collect chat interviews from one link and get quote-backed insights.</p>
       <form id="authForm" class="grid2">
-        <input name="name" placeholder="Name (sign-up only)" autocomplete="name">
-        <input name="email" type="email" placeholder="Email" required autocomplete="email">
-        <input name="password" type="password" placeholder="Password (8+ chars)" required minlength="8" autocomplete="current-password">
+        <label for="authName" class="sr-only">Name</label>
+        <input id="authName" name="name" placeholder="Name (sign-up only)" autocomplete="name">
+        <label for="authEmail" class="sr-only">Email</label>
+        <input id="authEmail" name="email" type="email" placeholder="Email" required autocomplete="email">
+        <label for="authPassword" class="sr-only">Password</label>
+        <input id="authPassword" name="password" type="password" placeholder="Password (8+ chars)" required minlength="8" autocomplete="current-password">
         <div class="row">
           <button type="submit" data-mode="login">Log in</button>
           <button type="submit" data-mode="register" class="secondary">Sign up</button>
@@ -32,7 +35,8 @@
     <section id="tool" class="card">
       <h2>Try the bias checker</h2>
       <form id="biasForm" class="row">
-        <input name="question" placeholder="e.g. Would you use an app that…?" required>
+        <label for="biasQuestion" class="sr-only">Interview question</label>
+        <input id="biasQuestion" name="question" placeholder="e.g. Would you use an app that…?" required>
         <button type="submit">Check</button>
       </form>
       <div id="biasOut" class="small"></div>
@@ -41,11 +45,15 @@
     <section id="dash" class="card hidden">
       <h2>New validation sprint</h2>
       <form id="sprintForm" class="stack">
-        <input name="title" placeholder="Sprint title" required>
-        <input name="targetCustomer" placeholder="Target customer (e.g. first-year international students)">
-        <textarea name="idea" rows="3" placeholder="Describe your idea and the problem it solves in plain words" required minlength="20"></textarea>
+        <label for="sprintTitle" class="sr-only">Sprint title</label>
+        <input id="sprintTitle" name="title" placeholder="Sprint title" required>
+        <label for="sprintCustomer" class="sr-only">Target customer</label>
+        <input id="sprintCustomer" name="targetCustomer" placeholder="Target customer (e.g. first-year international students)">
+        <label for="sprintIdea" class="sr-only">Idea</label>
+        <textarea id="sprintIdea" name="idea" rows="3" placeholder="Describe your idea and the problem it solves in plain words" required minlength="20"></textarea>
         <button type="submit">Map my assumptions</button>
       </form>
+      <p id="sprintMsg" class="msg"></p>
       <h2>My sprints</h2>
       <ul id="sprintList" class="list"></ul>
     </section>

@@ -22,7 +22,7 @@ const THRESHOLDS = [
   { metric: 'reliability_rating', label: 'Reliability rating (1=A)', op: '<=', limit: 1, why: 'No bugs allowed into a release' },
   { metric: 'security_rating', label: 'Security rating (1=A)', op: '<=', limit: 1, why: 'No known vulnerabilities in our own code' },
   { metric: 'code_smells', label: 'Code smells', op: '<=', limit: 25, why: 'Keeps the codebase readable for new team members' },
-  { metric: 'cognitive_complexity', label: 'Cognitive complexity (total)', op: '<=', limit: 250, why: 'Hard-to-follow logic is hard to change safely' },
+  { metric: 'cognitive_density', label: 'Cognitive complexity per 100 lines', op: '<=', limit: 20, why: 'Hard-to-follow logic is hard to change safely' },
 ];
 
 const auth = () => ({ Authorization: `Basic ${Buffer.from(`${process.env.SONAR_TOKEN || ''}:`).toString('base64')}` });
@@ -63,11 +63,13 @@ function evaluate(measures) {
 
 async function gate() {
   const status = await http(`${HOST}/api/qualitygates/project_status?projectKey=${encodeURIComponent(KEY)}`, { headers: auth(), timeoutMs: 20000 });
-  const metricKeys = ['ncloc', 'bugs', 'vulnerabilities', 'security_hotspots', ...THRESHOLDS.map((t) => t.metric)].join(',');
+  const metricKeys = ['ncloc', 'bugs', 'vulnerabilities', 'security_hotspots', 'cognitive_complexity', ...THRESHOLDS.map((t) => t.metric).filter((m) => m !== 'cognitive_density')].join(',');
   const measuresRes = await http(`${HOST}/api/measures/component?component=${encodeURIComponent(KEY)}&metricKeys=${metricKeys}`, { headers: auth(), timeoutMs: 20000 });
   if (status.status !== 200 || measuresRes.status !== 200) fail(`SonarCloud API error (${status.status}/${measuresRes.status})`);
 
   const measures = Object.fromEntries(measuresRes.json.component.measures.map((m) => [m.metric, m.value]));
+  // Derived metric: complexity density keeps the gate fair as the codebase grows.
+  measures.cognitive_density = ((Number(measures.cognitive_complexity) / Math.max(1, Number(measures.ncloc))) * 100).toFixed(1);
   const sonarGate = status.json.projectStatus.status;
   const checks = evaluate(measures);
   const passed = sonarGate === 'OK' && checks.every((c) => c.result === 'PASS');

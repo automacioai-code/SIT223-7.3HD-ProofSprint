@@ -13,8 +13,9 @@
       <h1 id="title">Loading…</h1>
       <p id="consent" class="small"></p>
       <form id="startForm" class="stack">
-        <input name="alias" placeholder="First name or nickname (optional)" maxlength="40">
-        <label class="small"><input type="checkbox" name="consent" required> I agree to take part</label>
+        <label for="alias" class="sr-only">First name or nickname</label>
+        <input id="alias" name="alias" placeholder="First name or nickname (optional)" maxlength="40">
+        <label class="small" for="consentBox"><input id="consentBox" type="checkbox" name="consent" required> I agree to take part</label>
         <button type="submit">Start the chat</button>
       </form>
       <p id="msg" class="msg"></p>
@@ -22,7 +23,8 @@
     <section class="card hidden" id="chat">
       <div id="log" class="log"></div>
       <form id="answerForm" class="row">
-        <input name="text" placeholder="Type your answer…" autocomplete="off" required>
+        <label for="answer" class="sr-only">Your answer</label>
+        <input id="answer" name="text" placeholder="Type your answer…" autocomplete="off" required>
         <button type="submit">Send</button>
       </form>
     </section>

@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const request = require('supertest');
 const pino = require('pino');
 const { loadConfig } = require('../../src/config');
@@ -16,8 +17,11 @@ function buildApp(overrides = {}) {
   return { app, store, config };
 }
 
-async function registerUser(app, email = `founder${Date.now()}${Math.random()}@deakin.edu.au`) {
-  const res = await request(app).post('/api/auth/register').send({ email, password: 'correct-horse-1', name: 'Founder' });
+// Test credentials are generated per run (no hard-coded passwords, no Math.random).
+const TEST_PASSWORD = crypto.randomBytes(12).toString('hex');
+
+async function registerUser(app, email = `founder-${crypto.randomUUID()}@deakin.edu.au`) {
+  const res = await request(app).post('/api/auth/register').send({ email, password: TEST_PASSWORD, name: 'Founder' });
   return { token: res.body.token, user: res.body.user, email };
 }
 
@@ -29,4 +33,4 @@ async function createSprint(app, token, body = {}) {
   return res.body.sprint;
 }
 
-module.exports = { buildApp, registerUser, createSprint, IDEA };
+module.exports = { buildApp, registerUser, createSprint, IDEA, TEST_PASSWORD };

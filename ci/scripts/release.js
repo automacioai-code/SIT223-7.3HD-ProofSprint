@@ -11,8 +11,11 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 const { REPO_ROOT, arg, opsRoot, readJson, writeJson, writeText, reportsDir, log } = require('./lib');
 
+// Absolute path to git (not a PATH lookup), so a writable PATH entry cannot hijack the release (Sonar S4036).
+const GIT = process.env.GIT_BINARY || (process.platform === 'win32' ? path.join(process.env.ProgramFiles || 'C:\\Program Files', 'Git', 'cmd', 'git.exe') : '/usr/bin/git');
+
 function git(args, options = {}) {
-  return execFileSync('git', args, { cwd: REPO_ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], ...options }).trim();
+  return execFileSync(GIT, args, { cwd: REPO_ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], ...options }).trim();
 }
 
 function tryGit(args, options) {
