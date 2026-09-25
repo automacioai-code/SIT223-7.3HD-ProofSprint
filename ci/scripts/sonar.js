@@ -31,7 +31,7 @@ async function ensureProject() {
   if (!process.env.SONAR_TOKEN) fail('SONAR_TOKEN is not set (add the SONAR_TOKEN secret-text credential in Jenkins)');
   const found = await http(`${HOST}/api/projects/search?organization=${ORG}&projects=${encodeURIComponent(KEY)}`, { headers: auth(), timeoutMs: 20000 });
   if (found.status !== 200) fail(`SonarCloud project lookup failed (${found.status}): ${found.text.slice(0, 200)}`);
-  if (found.json.components.length) {
+  if (found.json.components.some((c) => c.key === KEY)) {
     log(`SonarCloud project ${KEY} exists`);
     return;
   }

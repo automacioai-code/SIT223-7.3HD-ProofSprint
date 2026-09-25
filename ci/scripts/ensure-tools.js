@@ -12,7 +12,10 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 const { Readable } = require('stream');
 const { pipeline } = require('stream/promises');
-const { opsRoot, log, fail } = require('./lib');
+const { opsRoot, fail } = require('./lib');
+
+// Progress goes to stderr so that `--print` output (the tool path) stays clean for Jenkins.
+const log = (...args) => console.error('[pipeline]', ...args);
 
 const TOOLS = {
   'sonar-scanner': {
@@ -40,6 +43,15 @@ const TOOLS = {
     folder: (v) => `alertmanager-${v}.windows-amd64`,
     exe: 'alertmanager.exe',
   },
+  grafana: {
+    version: '13.2.2',
+    url: () => 'https://dl.grafana.com/grafana/release/13.2.2/grafana_13.2.2_34846740809_windows_amd64.tar.gz',
+    folder: (v) => `grafana-${v}`,
+    extractIntoFolder: true,
+    archiveExt: 'tar.gz',
+    nested: true,
+    exe: path.join('bin', 'grafana.exe'),
+  },
   pm2: { version: '6', npm: true, folder: () => 'pm2', exe: path.join('node_modules', 'pm2', 'package.json') },
 };
 
@@ -48,7 +60,13 @@ const toolsDir = () => path.join(opsRoot(), 'tools');
 function toolPath(name) {
   const tool = TOOLS[name];
   if (!tool) throw new Error(`Unknown tool ${name}`);
-  return path.join(toolsDir(), tool.folder(tool.version), tool.exe);
+  const base = path.join(toolsDir(), tool.folder(tool.version));
+  if (tool.nested && fs.existsSync(base)) {
+    // Archives such as Grafana contain one top-level folder whose name we do not hard-code.
+    const inner = fs.readdirSync(base).find((d) => fs.existsSync(path.join(base, d, tool.exe)));
+    if (inner) return path.join(base, inner, tool.exe);
+  }
+  return path.join(base, tool.exe);
 }
 
 async function download(url, file) {
@@ -62,7 +80,7 @@ function extract(zip, dest) {
   fs.mkdirSync(dest, { recursive: true });
   // Windows 10+ ships bsdtar, which extracts .zip archives.
   const tar = process.platform === 'win32' ? path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'tar.exe') : 'tar';
-  execFileSync(tar, ['-xf', zip, '-C', dest], { stdio: 'inherit' });
+  execFileSync(tar, ['-xf', zip, '-C', dest], { stdio: ['ignore', 'ignore', 'inherit'] });
 }
 
 async function install(name) {
@@ -74,16 +92,17 @@ async function install(name) {
     const prefix = path.join(toolsDir(), tool.folder());
     log(`Installing ${name}@${tool.version} into ${prefix}`);
     const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-    execFileSync(npm, ['install', '--prefix', prefix, `${name}@${tool.version}`, '--no-audit', '--no-fund'], { stdio: 'inherit', shell: process.platform === 'win32' });
+    execFileSync(npm, ['install', '--prefix', prefix, `${name}@${tool.version}`, '--no-audit', '--no-fund'], { stdio: ['ignore', process.stderr, process.stderr], shell: process.platform === 'win32' });
     return target;
   }
-  const zip = path.join(toolsDir(), `${name}-${tool.version}.zip`);
-  await download(tool.url(tool.version), zip);
-  extract(zip, tool.extractIntoFolder ? path.join(toolsDir(), tool.folder(tool.version)) : toolsDir());
-  fs.rmSync(zip, { force: true });
-  if (!fs.existsSync(target)) throw new Error(`${name} was extracted but ${target} is missing`);
+  const archive = path.join(toolsDir(), `${name}-${tool.version}.${tool.archiveExt || 'zip'}`);
+  await download(tool.url(tool.version), archive);
+  extract(archive, tool.extractIntoFolder ? path.join(toolsDir(), tool.folder(tool.version)) : toolsDir());
+  fs.rmSync(archive, { force: true });
+  const installed = toolPath(name);
+  if (!fs.existsSync(installed)) throw new Error(`${name} was extracted but ${installed} is missing`);
   log(`${name} ${tool.version} ready`);
-  return target;
+  return installed;
 }
 
 async function main() {
